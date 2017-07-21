@@ -17,7 +17,7 @@ Start-Sleep -Seconds 5
 Write-Host "Create Datasorces in Grafana" -ForegroundColor Yellow
 $basicAuthValue = @{authorization = 'Basic YWRtaW46YWRtaW4='}
 
-$json = @"
+$jsonDataSource = @"
 {
     "name": "netflow",
     "type": "influxdb",
@@ -29,14 +29,14 @@ $json = @"
 }
 "@
 
-Invoke-WebRequest -Uri "http://localhost:3000/api/datasources" -Method Post -Body $json -Headers $basicAuthValue -ContentType 'application/json'
+Invoke-WebRequest -Uri "http://localhost:3000/api/datasources" -Method Post -Body $jsonDataSource -Headers $basicAuthValue -ContentType 'application/json'
 
 
 
 # Create Dashbord in Grafana 
 Write-Host "Create Dashbord in Grafana " -ForegroundColor Yellow
 
-$dashjson = @"
+$jsonDashboard = @"
 {
   "dashboard": {
     "id": null,
@@ -154,6 +154,7 @@ $dashjson = @"
 }
 "@
 
-Invoke-WebRequest -Uri "http://localhost:3000/api/dashboards/db" -Method Post -Body $dashjson -Headers $basicAuthValue -ContentType 'application/json'
+Invoke-WebRequest -Uri "http://localhost:3000/api/dashboards/db" -Method Post -Body $jsonDashboard -Headers $basicAuthValue -ContentType 'application/json'
 
+# Docker-compose restart fluentd 
 docker-compose restart fluentd
