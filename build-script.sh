@@ -1,23 +1,21 @@
 # Docker build
 docker-compose down
 
-# Docker-compose rm $(docker-compose ps -q)
-docker-compose build
+#docker-compose rm $(docker-compose ps -q)
+
+docker-compose build 
 
 # Docker-comose start services
 docker-compose up -d
 
 # Create Database netflow in influxdb
-Write-Host "Create Database netflow in influxdb" -ForegroundColor Yellow
-Invoke-WebRequest -Uri "http://localhost:8086/query" -Method Post -Body @{q='CREATE DATABASE netflow'}
-
-Start-Sleep -Seconds 5
+curl -i -XPOST http://localhost:8086/query --data-urlencode "q=CREATE DATABASE netflow"
 
 # Create Datasorces in Grafana
-Write-Host "Create Datasorces in Grafana" -ForegroundColor Yellow
-$basicAuthValue = @{authorization = 'Basic YWRtaW46YWRtaW4='}
 
-$json = @"
+JsonDataSource()
+{
+    cat <<EOF
 {
     "name": "netflow",
     "type": "influxdb",
@@ -27,16 +25,20 @@ $json = @"
     "isDefault": true,
     "basicAuth": false
 }
-"@
+EOF
+}
 
-Invoke-WebRequest -Uri "http://localhost:3000/api/datasources" -Method Post -Body $json -Headers $basicAuthValue -ContentType 'application/json'
-
-
+curl -i \
+    -H "Accept: application/json" \
+    -c "admin:admin" \
+    -X XPOST \
+    -d "$(JsonDataSource)" \
+    http://localhost:3000/api/datasources
 
 # Create Dashbord in Grafana 
-Write-Host "Create Dashbord in Grafana " -ForegroundColor Yellow
-
-$dashjson = @"
+jsonDashboard()
+{
+    cat <<EOF
 {
   "dashboard": {
     "id": null,
@@ -152,8 +154,14 @@ $dashjson = @"
   },
   "overwrite": false
 }
-"@
+EOF
+}
 
-Invoke-WebRequest -Uri "http://localhost:3000/api/dashboards/db" -Method Post -Body $dashjson -Headers $basicAuthValue -ContentType 'application/json'
-
+curl -i \
+    -H "Accept: application/json" \
+    -c "admin:admin" \
+    -X XPOST \
+    -d "$(JsonDashbord)" \
+    http://localhost:3000/api/dashboards/db
+# Docker-compose restart fluentd 
 docker-compose restart fluentd
