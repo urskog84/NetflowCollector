@@ -4,14 +4,18 @@ services:
 # Define InfluxDB
   influxdb:
     build: ./influxdb
-    ports:
+    hostname: influxdb
+    container_name: influxdb
+    ports: 
       - "8083:8083"
       - "8086:8086"
       - "8090:8090"
- 
+   
 # Define grafana
   grafana:
     build: ./grafana
+    hostname: grafana
+    container_name: grafana
     ports:
       - "3000:3000"
     depends_on:
@@ -20,6 +24,10 @@ services:
 # Define Fluentd
   fluentd:
     build: ./fluentd
+    hostname: fluentd
+    container_name: fluentd
+    links:
+      - influxdb
     ports:
       - "24284:24284"
       - "24284:24284/udp"
